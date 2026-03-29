@@ -1,0 +1,12 @@
+dotenv
+openai
+langchain
+langchain-openai
+langchain_community
+IPython
+streamlit
+google-adk
+graphviz
+litellm
+yfinance
+playwright
