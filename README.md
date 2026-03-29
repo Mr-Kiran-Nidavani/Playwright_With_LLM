@@ -873,49 +873,95 @@ Validated that success message appears after login
 
 ---
 
-### UI Layout Diagram
+### UI Layout Diagram (streamlit_app_run.py)
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     🎭 Playwright + LLM                         │
-│            AI-Powered Web Automation                            │
-├──────────────────────┬──────────────────────────────────────────┤
-│ 📌 LEFT SIDEBAR      │ 📄 MAIN CONTENT AREA                    │
-├──────────────────────┼──────────────────────────────────────────┤
-│                      │                                          │
-│ ⚙️ Configuration     │ 📝 Test Scenario Input                  │
-│  ☐ Headless Mode    │ ┌──────────────────────────────────────┐│
-│  ☐ Debug Logs       │ │ Go to https://example.com/login      ││
-│                      │ │ Complete login flow                  ││
-│ 📊 Session Info      │ │ Steps: fill email, password, submit  ││
-│  Last Run: 5 steps   │ │                                      ││
-│  Avg Time: 40s       │ └──────────────────────────────────────┘│
-│                      │                                          │
-│ 🔗 Resources         │ 🎯 Action Buttons                       │
-│  • Docs              │  [🚀 Run] [🔄 Clear] [ℹ️ Info]         │
-│  • Examples          │                                          │
-│                      │ 📈 Results (After Execution)            │
-│                      │  📋 │ 📝 │ 💻 │ 📊                      │
-│                      │  Overview Steps Code Status              │
-└──────────────────────┴──────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                    🎭 Playwright + LLM Automation                    │
+│            ✨ AI-Powered Web Automation with Self-Healing Tests     │
+├────────────────────────┬─────────────────────────────────────────────┤
+│ 🔵 LEFT SIDEBAR        │ 📄 MAIN CONTENT AREA                       │
+│ (Blue Background)      │                                             │
+├────────────────────────┼─────────────────────────────────────────────┤
+│                        │                                             │
+│ ⚙️ Configuration       │ 💬 Test Scenario                           │
+│  ☑ Headless Mode      │ ┌────────────────────────────────────────┐ │
+│  ☑ Debug Mode         │ │ Go to website -> login -> add product  │ │
+│                        │ │ -> validate cart                       │ │
+│                        │ │                                        │ │
+│                        │ │                                        │ │
+│                        │ └────────────────────────────────────────┘ │
+│                        │                                             │
+│                        │ 🎯 Action Buttons                          │
+│                        │  [🚀 Run Automation]  [🔄 Clear]          │
+│                        │                                             │
+│                        │ ═════════════════════════════════════════ │
+│                        │ 📊 RESULTS (After Execution)              │
+│                        │ ═════════════════════════════════════════ │
+│                        │                                             │
+│                        │ Status: ✅ SUCCESS    Duration: 33.75s     │
+│                        │ No Errors                                   │
+│                        │                                             │
+│                        │  📝 Manual Steps │ 💻 Code │ 📊 Result    │
+│                        │  ─────────────────────────────────────     │
+│                        │                                             │
+│                        │  📝 Tab Content:                           │
+│                        │  STEP 1: Navigate to page                 │
+│                        │  STEP 2: Fill form                        │
+│                        │  STEP 3: Submit form                      │
+│                        │  STEP 4: Validate success                 │
+│                        │                                             │
+└────────────────────────┴─────────────────────────────────────────────┘
 ```
+
+---
+
+### Layout Components Explained
+
+**Left Sidebar (Blue):**
+- 🔵 Fixed blue background (professional look)
+- ⚙️ **Configuration** section:
+  - ☑️ Headless Mode toggle (show/hide browser)
+  - ☑️ Debug Mode toggle (verbose logs on/off)
+
+**Main Content Area (White/Light):**
+1. **Header**:
+   - 🎭 Title: "Playwright + LLM Automation"
+   - ✨ Subtitle: "AI-Powered Web Automation with Self-Healing Tests"
+
+2. **Input Section**:
+   - 💬 Large textarea for test scenario description
+   - Placeholder with example scenario
+
+3. **Action Buttons**:
+   - 🚀 **Run Automation** (primary, full-width, blue)
+   - 🔄 **Clear** (secondary, right-aligned, blue)
+
+4. **Results Panel** (appears after execution):
+   - 📊 Status badges at top (Success/Failed, Duration, Errors)
+   - **3 Tabs** for detailed results:
+     - 📝 **Manual Steps**: Execution history
+     - 💻 **Generated Code**: Playwright code with syntax highlighting
+     - 📊 **Final Result**: Summary and output
 
 ---
 
 ### Color Scheme & Visual Design
 
-**Gradient Theme:**
-- 🟣 **Main**: Purple (#667eea) → Violet (#764ba2)
-- 🟢 **Success**: Green (#11998e) → Lime (#38ef7d)
-- 🔴 **Errors**: Red (#eb3349) → Orange (#f45c43)
-- 🟠 **Warnings**: Pink (#f093fb) → Red (#f5576c)
-- 🔵 **Info**: Navy (#1e3c72) → Blue (#2a5298)
+**Gradient Theme (streamlit_app_run.py):**
+- 🔵 **Sidebar**: Solid blue (#4B5EFC)
+- 🟣 **Buttons**: Purple (#667eea) → Violet (#764ba2)
+- 🟢 **Success**: Bright green (#11998e) text badges
+- 🔴 **Errors**: Red (#eb3349) text indicators
+- ⚪ **Background**: Clean white for main content
 
 **Design Features:**
-- ✨ Smooth hover effects on buttons
-- 🎨 Expandable/collapsible code blocks
-- 📊 Color-coded status badges
-- 📱 Responsive layout (desktop & tablet friendly)
+- ✨ Clean, minimal layout (no clutter)
+- 🎨 Large readable text in results
+- 📊 Color-coded status indicators
+- 📱 Fully responsive (works on all screen sizes)
+- ⚡ Fast, minimal re-renders
+- 🎯 Single session state (no complex logic)
 
 ---
 
