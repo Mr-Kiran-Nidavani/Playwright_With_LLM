@@ -1,433 +1,237 @@
-import streamlit as st
+import asyncio
 import sys
-import os
+
+# -------------------------------
+# FIX: Windows asyncio subprocess
+# -------------------------------
+if sys.platform.startswith("win"):
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+import streamlit as st
 from pathlib import Path
-
-# Add parent directory to path to import backend modules
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from backend.test_executor import run_automation
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# -------------------------------
+# LOAD ENV
+# -------------------------------
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           PAGE CONFIGURATION & STYLING                        ║
-# ╚═══════════════════════════════════════════════════════════════╝
+# -------------------------------
+# FIX IMPORT PATH
+# -------------------------------
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-st.set_page_config(
-    page_title="🤖 Playwright + LLM Automation",
-    page_icon="🎭",
-    layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items={
-        "About": "### 🤖 Intelligent Web Automation with Playwright + LLM\n\nAutomate complex web workflows using AI-powered code generation."
-    }
+# -------------------------------
+# IMPORT RUN FUNCTION
+# -------------------------------
+from backend.test_executor import run
+
+# -------------------------------
+# PAGE CONFIG
+# -------------------------------
+st.set_page_config(layout="wide", page_title="Playwright + LLM Automation")
+
+# -------------------------------
+# CSS
+# -------------------------------
+st.markdown("""
+<style>
+.stApp { background-color: #f8fafc; }
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #2563eb, #1e3a8a);
+    color: white;
+}
+
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] span {
+    color: white !important;
+}
+
+/* Header */
+.title {
+    text-align: center;
+    font-size: 40px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.subtitle {
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 25px;
+}
+
+/* Buttons */
+.stButton>button {
+    background-color: #4f46e5;
+    color: white;
+    border-radius: 10px;
+    height: 50px;
+    font-size: 16px;
+    border: none;
+}
+.stButton>button:hover {
+    background-color: #4338ca;
+}
+
+/* Cards */
+.card {
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Status */
+.success { color: #16a34a; font-weight: 600; }
+.fail { color: #dc2626; font-weight: 600; }
+
+textarea {
+    background-color: white !important;
+    color: black !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------------
+# SESSION STATE
+# -------------------------------
+if "result" not in st.session_state:
+    st.session_state.result = None
+
+if "scenario" not in st.session_state:
+    st.session_state.scenario = ""
+
+# -------------------------------
+# SIDEBAR
+# -------------------------------
+st.sidebar.markdown("## ⚙️ Configuration")
+
+headless = st.sidebar.checkbox("🕶️ Headless Mode", value=False)
+debug_bool = st.sidebar.checkbox("🐞 Debug Mode", value=False)
+debug = "true" if debug_bool else "false"
+
+# -------------------------------
+# HEADER
+# -------------------------------
+st.markdown('<div class="title">🎭 Playwright + LLM Automation</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">✨ AI-Powered Web Automation with Self-Healing Tests</div>', unsafe_allow_html=True)
+
+# -------------------------------
+# INPUT
+# -------------------------------
+st.markdown("### 🧠 Test Scenario")
+
+scenario = st.text_area(
+    "",
+    height=150,
+    placeholder="Go to website → login → add product → validate cart",
+    value=st.session_state.scenario
 )
 
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           CUSTOM CSS STYLING (COLORFUL)                       ║
-# ╚═══════════════════════════════════════════════════════════════╝
+# -------------------------------
+# BUTTONS
+# -------------------------------
+col1, col2 = st.columns([3, 1])
 
-st.markdown("""
-    <style>
-    /* Main background */
-    .main {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
-        color: white;
-    }
-    
-    /* Headers */
-    h1 {
-        color: #667eea;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        font-size: 2.5em;
-    }
-    
-    h2 {
-        color: #764ba2;
-        border-bottom: 3px solid #667eea;
-        padding-bottom: 10px;
-    }
-    
-    h3 {
-        color: #667eea;
-    }
-    
-    /* Buttons */
-    .stButton > button {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 25px;
-        padding: 12px 30px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
-    
-    /* Input fields */
-    .stTextArea > div > div > textarea {
-        border-radius: 10px;
-        border: 2px solid #667eea;
-        padding: 10px;
-        font-family: 'Monaco', 'Courier New', monospace;
-    }
-    
-    .stTextInput > div > div > input {
-        border-radius: 10px;
-        border: 2px solid #667eea;
-    }
-    
-    /* Success message */
-    .success-box {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 5px solid #38ef7d;
-        margin: 10px 0;
-    }
-    
-    /* Error message */
-    .error-box {
-        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 5px solid #f45c43;
-        margin: 10px 0;
-    }
-    
-    /* Info message */
-    .info-box {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 5px solid #667eea;
-        margin: 10px 0;
-    }
-    
-    /* Warning message */
-    .warning-box {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 5px solid #f5576c;
-        margin: 10px 0;
-    }
-    
-    /* Code blocks */
-    code {
-        background-color: rgba(102, 126, 234, 0.1);
-        color: #667eea;
-        padding: 2px 6px;
-        border-radius: 5px;
-        font-weight: bold;
-    }
-    
-    /* Container styling */
-    .stContainer {
-        background: white;
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        margin: 10px 0;
-    }
-    
-    /* Metric styling */
-    .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        margin: 10px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+run_clicked = col1.button("🚀 Run Automation", use_container_width=True)
+clear_clicked = col2.button("🧹 Clear", use_container_width=True)
 
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           SIDEBAR - CONFIGURATION                             ║
-# ╚═══════════════════════════════════════════════════════════════╝
+# -------------------------------
+# CLEAR
+# -------------------------------
+if clear_clicked:
+    st.session_state.result = None
+    st.session_state.scenario = ""
+    st.rerun()
 
-with st.sidebar:
-    st.markdown("### ⚙️ Configuration")
-    
-    headless_mode = st.checkbox("🤫 Headless Mode (No browser window)", value=False)
-    enable_debug = st.checkbox("🐛 Enable Debug Logs", value=True)
-    
-    st.markdown("---")
-    st.markdown("### 📚 Quick Start")
-    st.markdown("""
-    1. Enter your test scenario
-    2. Click **Run Automation**
-    3. Watch the browser execute
-    4. View results below
-    """)
-    
-    st.markdown("---")
-    st.markdown("### 🔗 Resources")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("[📖 Playwright Docs](https://playwright.dev/python/)")
-    with col2:
-        st.markdown("[🔑 OpenAI API](https://platform.openai.com/)")
-    
-    st.markdown("---")
-    st.markdown("### 📊 Session Info")
-    if os.getenv("OPENAI_API_KEY"):
-        st.success("✅ OpenAI API Key: Configured")
-    else:
-        st.error("❌ OpenAI API Key: Missing (.env file)")
+# -------------------------------
+# RUN
+# -------------------------------
+if run_clicked:
+    if not scenario.strip():
+        st.warning("⚠️ Please enter a scenario")
+        st.stop()
 
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           MAIN PAGE HEADER                                    ║
-# ╚═══════════════════════════════════════════════════════════════╝
+    st.session_state.scenario = scenario
 
-st.markdown("""
-    <div style='text-align: center; margin-bottom: 30px;'>
-        <h1>🎭 Playwright + LLM Automation</h1>
-        <p style='font-size: 18px; color: #764ba2; margin-top: -10px;'>
-            ✨ AI-Powered Web Automation with Self-Healing Tests
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           SESSION STATE INITIALIZATION                        ║
-# ╚═══════════════════════════════════════════════════════════════╝
-
-if "execution_in_progress" not in st.session_state:
-    st.session_state.execution_in_progress = False
-
-if "execution_result" not in st.session_state:
-    st.session_state.execution_result = None
-
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           MAIN CONTENT AREA                                   ║
-# ╚═══════════════════════════════════════════════════════════════╝
-
-col1, col2 = st.columns([2, 1])
-
-with col1:
-    st.markdown("### 📝 Test Scenario")
-    st.markdown("Describe the automation flow you want to execute:")
-    
-    scenario_input = st.text_area(
-        label="Scenario",
-        value="""Go to https://practice.qabrains.com/ecommerce/login
-Validate add to cart flow for any product
-Here is high level steps to achieve this:
-open page, login with test@qabrains.com & Password123,
-Add 1st product to cart, check the cart and validate product is added successfully""",
-        height=150,
-        label_visibility="collapsed",
-        placeholder="Enter your test scenario here..."
-    )
-
-with col2:
-    st.markdown("### 🎯 Example Scenarios")
-    st.markdown("""
-    #### 🛒 E-commerce
-    - Login flow
-    - Add to cart
-    - Checkout
-    
-    #### 📝 Forms
-    - Fill registration
-    - Submit forms
-    - Validate success
-    
-    #### 🔍 Navigation
-    - Search products
-    - Filter results
-    - View details
-    """)
-
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           EXECUTION SECTION                                   ║
-# ╚═══════════════════════════════════════════════════════════════╝
-
-st.markdown("---")
-
-col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
-
-with col_btn1:
-    if st.button("🚀 Run Automation", use_container_width=True):
-        if not scenario_input.strip():
-            st.error("❌ Please enter a scenario first!")
-        elif not os.getenv("OPENAI_API_KEY"):
-            st.error("❌ OPENAI_API_KEY not configured in .env file")
-        else:
-            st.session_state.execution_in_progress = True
-
-with col_btn2:
-    if st.button("🔄 Clear Results", use_container_width=True):
-        st.session_state.execution_result = None
-        st.rerun()
-
-with col_btn3:
-    if st.button("ℹ️ Show Info", use_container_width=True):
-        st.info("""
-        ### 🤖 How It Works
-        
-        1. **Scenario Input** → Your test description
-        2. **Browser Launch** → Playwright opens browser
-        3. **DOM Extraction** → Smart element detection
-        4. **Code Generation** → LLM generates Playwright code
-        5. **Execution** → Code runs on the page
-        6. **Error Handling** → Auto-fix on failure
-        7. **Repeat** → Until test complete or fails
-        """)
-
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           EXECUTION PROGRESS                                  ║
-# ╚═══════════════════════════════════════════════════════════════╝
-
-if st.session_state.execution_in_progress:
-    st.markdown("---")
-    
-    with st.container():
-        progress_placeholder = st.empty()
-        logs_placeholder = st.empty()
-        result_placeholder = st.empty()
-        
-        with progress_placeholder.container():
-            st.markdown("""
-                <div class='info-box'>
-                    <h3>⏳ Running Automation...</h3>
-                    <p>Browser is executing your scenario. This may take 30-60 seconds.</p>
-                </div>
-                """, unsafe_allow_html=True)
-        
+    with st.spinner("🤖 Running automation..."):
         try:
-            with logs_placeholder.container():
-                st.write("")
-                with st.spinner("🎬 Launching browser..."):
-                    st.write("Initializing Playwright...")
-                    st.write("Navigating to target URL...")
-                    st.write("Extracting page elements...")
-                    st.write("Generating step code with LLM...")
-                    st.write("Executing automation steps...")
-            
-            # Call backend execution function
-            result = run_automation(
-                scenario=scenario_input,
-                headless=headless_mode,
-                debug=enable_debug
-            )
-            
-            st.session_state.execution_result = result
-            st.session_state.execution_in_progress = False
-            
-            # Clear placeholders and show result
-            progress_placeholder.empty()
-            logs_placeholder.empty()
-            
-            if result.get("status") == "SUCCESS":
-                with result_placeholder.container():
-                    st.markdown("""
-                        <div class='success-box'>
-                            <h3>✅ Automation Completed Successfully!</h3>
-                            <p>Your test scenario has been executed successfully.</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    st.write("**📊 Execution Summary:**")
-                    col_s1, col_s2, col_s3 = st.columns(3)
-                    with col_s1:
-                        st.metric("Steps Executed", result.get("steps", 0))
-                    with col_s2:
-                        st.metric("Errors Fixed", result.get("errors_fixed", 0))
-                    with col_s3:
-                        st.metric("Duration", result.get("duration", "N/A"))
-                    
-                    if result.get("description"):
-                        st.write("**📝 Final Output:**")
-                        st.write(result.get("description"))
-            
-            else:
-                with result_placeholder.container():
-                    st.markdown(f"""
-                        <div class='error-box'>
-                            <h3>❌ Automation Failed</h3>
-                            <p>{result.get('error', 'Unknown error occurred')}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-        
+            res = run(scenario, headless, debug)
+            st.session_state.result = res
         except Exception as e:
-            progress_placeholder.empty()
-            logs_placeholder.empty()
-            with result_placeholder.container():
-                st.markdown(f"""
-                    <div class='error-box'>
-                        <h3>❌ Error During Execution</h3>
-                        <p>{str(e)}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+            st.error(f"❌ Execution Failed: {str(e)}")
+            st.stop()
 
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           DISPLAY PREVIOUS RESULTS                            ║
-# ╚═══════════════════════════════════════════════════════════════╝
+# -------------------------------
+# DISPLAY RESULT
+# -------------------------------
+if st.session_state.result:
 
-if st.session_state.execution_result and not st.session_state.execution_in_progress:
-    st.markdown("---")
-    st.markdown("### 📈 Last Execution Result")
-    
-    result = st.session_state.execution_result
-    
-    if result.get("status") == "SUCCESS":
-        st.markdown("""
-            <div class='success-box'>
-                <h3>✅ Execution Successful</h3>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-            <div class='error-box'>
-                <h3>❌ Execution Failed</h3>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    col_res1, col_res2, col_res3 = st.columns(3)
-    with col_res1:
-        st.metric("Status", result.get("status", "Unknown"))
-    with col_res2:
-        st.metric("Attempts", result.get("attempts", 0))
-    with col_res3:
-        st.metric("Last Updated", "Just now")
+    res = st.session_state.result
 
-# ╔═══════════════════════════════════════════════════════════════╗
-# ║           FOOTER                                              ║
-# ╚═══════════════════════════════════════════════════════════════╝
+    # -------------------------------
+    # SUMMARY
+    # -------------------------------
+    st.markdown("### 📊 Execution Report")
 
-st.markdown("---")
-st.markdown("""
-    <div style='text-align: center; color: #764ba2; margin-top: 30px;'>
-        <small>
-        🚀 Built with <b>Playwright</b> + <b>LLM (GPT-4o-mini)</b> + <b>LangSmith</b>
-        </small>
-        <br>
-        <small>
-        📚 <a href='https://playwright.dev/python/'>Playwright Docs</a> | 
-        <a href='https://platform.openai.com/docs/api-reference'>OpenAI API</a> | 
-        <a href='https://docs.smith.langchain.com/'>LangSmith Docs</a>
-        </small>
-    </div>
-    """, unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+
+    status = res.get("status", "UNKNOWN")
+    duration = res.get("duration", "-")
+    error = res.get("error", None)
+
+    with col1:
+        color = "success" if status == "SUCCESS" else "fail"
+        st.markdown(f'<div class="card">Status<br><span class="{color}">{status}</span></div>', unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(f'<div class="card">Duration<br>{duration}</div>', unsafe_allow_html=True)
+
+    with col3:
+        if error:
+            st.markdown(f'<div class="card fail">Error<br>{error}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="card success">No Errors</div>', unsafe_allow_html=True)
+
+    # -------------------------------
+    # CONSOLIDATED STEPS + CODE
+    # -------------------------------
+    st.markdown("### 🧪 Test Execution Details")
+
+    steps = res.get("steps", [])
+
+    clean_steps = []
+    code_text = ""
+
+    for step in steps:
+        desc = step.get("description", "").strip()
+
+        # ✅ CLEAN STEP TEXT (NO HTML / NO BULLETS)
+        desc = desc.lstrip("-• ").replace("</div>", "").strip()
+        clean_steps.append(desc)
+
+        # ✅ CLEAN CODE
+        code = step.get("code", "").strip()
+        code_text += f"# Step {step.get('step_number')}\n{code}\n\n"
+
+    steps_text = "\n\n".join(clean_steps)
+
+    col1, col2 = st.columns(2)
+
+    # -------------------------------
+    # TEST STEPS (FIXED)
+    # -------------------------------
+    with col1:
+        st.markdown("#### 📝 Test Steps")
+        st.code(steps_text, language="markdown")
+
+    # -------------------------------
+    # CODE (SAFE)
+    # -------------------------------
+    with col2:
+        st.markdown("#### 💻 Code")
+        st.code(code_text, language="python")

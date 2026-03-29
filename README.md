@@ -35,7 +35,7 @@ Then open **http://localhost:8501** and start automating!
 6. [Project Structure](#-project-structure)
 7. [Setup Instructions](#-setup-instructions)
 8. [Configuration](#%EF%B8%8F-configuration)
-9. [Running the Project](#-running-the-project)
+9. [Running the Project After Setup](#-running-the-project-after-setup)
 10. [Streamlit UI Guide](#-streamlit-ui-guide)
 11. [Code Examples](#-code-examples)
 12. [References](#-references--external-documentation)
@@ -176,42 +176,221 @@ pyproject.toml           ← Project metadata
 
 ## 🎨 Streamlit Web Interface
 
-We provide a beautiful, colorful Streamlit application for easy automation management:
+We provide a beautiful, clean Streamlit application for easy automation management - designed for simplicity and focus.
 
 ### Features:
 
 **Visual Design:**
 - 🎨 Gradient purple-blue theme
-- 🌈 Colorful success/error/warning messages
+- 🌈 Colorful status badges (success/error)
 - 📱 Responsive layout for desktop & tablet
-- ✨ Smooth animations & hover effects
+- ✨ Clean, minimal interface
 
 **Functionality:**
-- 📝 Rich text area for scenario input
-- 🔧 Configuration sidebar (headless mode, debug logs)
-- 🚀 One-click execution button
-- 📊 Real-time execution metrics
-- 💾 Previous results display
-- 📚 Quick reference guides & examples
+- 📝 Simple text area for scenario input
+- ⚙️ Configuration sidebar (headless mode, debug logs)
+- 🚀 Single "Run Automation" button
+- 📊 **Results Display with 3 Tabs:**
+  - **📝 Manual Steps**: Execution history showing all steps followed
+  - **💻 Generated Code**: All generated Playwright code with expandable details
+  - **📊 Final Result**: Summary report and final output
+- 🔄 **Clear Button** - Reset and start fresh
 
 **Usage:**
 ```bash
+# Recommended - Simplified UI (Latest)
+.venv\Scripts\streamlit run ui/streamlit_app_run.py
+
+# Alternative - Full-featured UI
 streamlit run ui/streamlit_app.py
 ```
+
 Then open http://localhost:8501 in your browser
 
-**Screenshot Areas:**
+---
+
+### Streamlit UI Walkthrough (streamlit_app_run.py)
+
+**On Load:**
+1. Configure sidebar with Headless Mode & Debug Logs toggles
+2. Title: "🎭 Playwright + LLM Automation"
+3. Subtitle: "✨ AI-Powered Web Automation with Self-Healing Tests"
+4. Test Scenario text area with example
+5. "🚀 Run Automation" button
+
+**After Clicking Run:**
+1. Status badge shows ✅ Success or ❌ Failed
+2. Three metrics displayed: Total Steps, Duration, Status
+3. Three result tabs appear:
+
+**Tab 1: Manual Steps (📝)**
 ```
-┌─────────────────────────────────────────────────┐
-│  🎭 Playwright + LLM Automation UI             │
-├─────────────────────────────────────────────────┤
-│ Sidebar:              Main Content:             │
-│ ⚙️ Configuration      📝 Scenario Input         │
-│ ✅ API Status        🎯 Example Scenarios      │
-│ 📚 Resources         🚀 Run Automation         │
-│                      📊 Results Display        │
-└─────────────────────────────────────────────────┘
+Step 1: Navigate to login page
+Step 2: Fill email test@example.com
+Step 3: Fill password
+Step 4: Click login button
+Step 5: Validate success message
 ```
+
+**Tab 2: Generated Code (💻)**
+```
+Step 1: Navigate to login page
+  └─ ✅ Executed successfully on first try
+  └─ Code: page.goto("https://example.com/login")
+
+Step 2: Fill email field
+  └─ 🔧 Auto-fixed after initial failure
+  └─ Code: page.fill("#email", "test@example.com")
+
+(Expandable sections for each step)
+```
+
+**Tab 3: Final Result (📊)**
+```
+Summary Table:
+├─ Overall Status: SUCCESS
+├─ Total Steps: 5
+├─ Duration: 42.5s
+├─ Scenario: Go to https://... (truncated)
+
+Final Output: [Result of last step]
+```
+
+4. "🔄 Clear Report" button to reset
+
+---
+
+## 🖼️ Visual Walkthrough - Real Screenshots
+
+### **1. Main Interface - Configuration & Input**
+
+When you first launch the Streamlit app, you'll see:
+
+**Sidebar (Left Panel - Blue):**
+- ⚙️ Configuration section with toggles:
+  - ☑️ **Headless Mode** - Run browser visible or hidden
+  - ☑️ **Debug Mode** - Enable detailed logging
+
+**Main Area (Center):**
+- 🎭 Title: "Playwright + LLM Automation"
+- ✨ Subtitle: "AI-Powered Web Automation with Self-Healing Tests"
+- 💬 **Test Scenario** textarea with example:
+  ```
+  Go to website -> login -> add product -> validate cart
+  ```
+- 🚀 **Run Automation** button (large, prominent)
+- 🔄 **Clear** button (right side)
+
+**Example Input:**
+```
+Go to practice.upbrainme.com
+Click on Registration link
+Fill the registration form with:
+  - Name: John Doe
+  - Country: United Arab Emirates
+  - Account Type: Engineer
+  - Email: user@user.com
+  - Password: password123
+  - Confirm Password: password123
+Click Sign Up button
+Validate success message showing "Registration Successful"
+```
+
+---
+
+### **2. Execution Report - Results Panel**
+
+![Execution Report](screenshots/execution_report.png)
+
+After clicking "Run Automation", you'll see the results appear in three tabs:
+
+**Status & Metrics (Top):**
+- 📊 **Status**: ✅ SUCCESS (or ❌ FAILED)
+- ⏱️ **Duration**: 33.75s (example)
+- ✔️ **No Errors** (green badge)
+
+**Tab 1: Test Steps (📝)**
+Displays the execution history showing each step:
+```
+STEP 1: Open the registration page.
+STEP 2: Click on the Registration link to open the registration form.
+STEP 3: Fill the registration form and submit.
+STEP 4: Validate the success message after registration.
+```
+
+**Tab 2: Code (💻)**
+Shows the generated Playwright code for each step with syntax highlighting:
+```python
+# Step 1
+page.goto("https://practice.upbrainme.com")
+page.locator("text=Registration").click()
+page.wait_for_load_state("networkidle", timeout=5000)
+page.wait_for_timeout(2000)
+
+# Step 2
+page.click("#registration")
+
+# Step 3
+page.fill("name", "John Doe")
+page.select_option("#country", "United Arab Emirates")
+page.select_option("#account", "Engineer")
+page.fill("#email", "user@user.com")
+page.fill("#password", "password123")
+page.fill("#confirm_password", "password123")
+page.click("text=SIGNUP")
+page.wait_for_load_state("domcontentloaded")
+page.wait_for_timeout(2000)
+
+# Step 4
+page.locator("#livsuccess-msg").wait_for(state="visible")
+expect(page.locator("#livsuccess-msg")).to_contain_text("Registration Successful")
+page.wait_for_load_state("domcontentloaded")
+page.wait_for_timeout(2000)
+```
+
+---
+
+## 💡 How to Use - Step by Step
+
+### **Main Interface Screenshot**
+
+![Streamlit Interface](screenshots/streamlit.png)
+
+---
+
+### 1. **Enter Your Test Scenario**
+Write a natural language description of what you want to automate:
+```
+✏️ Navigate to company website
+✏️ Log in with credentials
+✏️ Search for product
+✏️ Add to cart
+✏️ Validate cart count
+```
+
+No Playwright code needed! LLM handles the implementation.
+
+### 2. **Configure Settings (Optional)**
+- **Headless Mode**: ✅ for faster execution (no browser window), ❌ to watch it run
+- **Debug Mode**: ✅ to see detailed logs, ❌ for clean output
+
+### 3. **Click "Run Automation"**
+The system will:
+1. 🔍 Extract live DOM from specified website
+2. 🤖 Generate Playwright code for each step
+3. ⚙️ Execute the code
+4. 🔧 Auto-fix any failures
+5. 📊 Display results
+
+### 4. **Review Results**
+- **Test Steps Tab**: See what actions were taken
+- **Code Tab**: Review the generated code
+- **Final Result**: Check overall status
+
+### 5. **Clear & Try Again**
+Click the "🔄 Clear" button to reset and run a new scenario.
+
+---
 
 ```
 playwright-with-llm/
@@ -224,11 +403,12 @@ playwright-with-llm/
 │
 ├── ui/                          # 🎨 Streamlit UI
 │   ├── __init__.py
-│   └── streamlit_app.py         # 🎨 Beautiful web interface
+│   ├── streamlit_app_run.py     # 🎨 Simplified, clean UI (RECOMMENDED)
+│   └── streamlit_app.py         # Full-featured UI (legacy)
 │
 └── backend/
     ├── __init__.py
-    ├── test_executor.py         # 🎯 Core orchestrator
+    ├── test_executor.py         # 🎯 Core orchestrator (Windows asyncio fix included)
     │
     ├── agents/
     │   ├── __init__.py
@@ -244,18 +424,18 @@ playwright-with-llm/
     │
     ├── llm/
     │   ├── __init__.py
-    │   ├── client.py            # OpenAI API setup
+    │   ├── client.py            # OpenAI API setup (loads .env)
     │   ├── utils.py             # Response parsing
     │   └── __pycache__/
     │
     ├── playwright/
     │   ├── __init__.py
-    │   ├── page_functions.py    # extract_dom_tree(), wait_for_dom_change()
+    │   ├── page_functions.py    # DOM extraction & manipulation
     │   └── __pycache__/
     │
     ├── utils/
     │   ├── __init__.py
-    │   ├── logger.py            # Logging utilities
+    │   ├── logger.py            # add_debug_logs() with .env check
     │   └── __pycache__/
     │
     └── __pycache__/
@@ -316,9 +496,22 @@ Then edit `.env` and add your OpenAI API key:
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_API_BASE=https://api.openai.com/v1
+DEBUG=False
 ```
 
 Get your OpenAI API key from: https://platform.openai.com/api-keys
+
+**DEBUG Flag Behavior:**
+- **When running backend directly**: Uses `DEBUG` value from `.env`
+  ```python
+  python backend/test_executor.py
+  DEBUG = False  # Uses .env value
+  ```
+- **When running Streamlit**: The checkbox in sidebar overrides `.env` value
+  ```bash
+  streamlit run ui/streamlit_app.py
+  DEBUG = [checkbox value]  # Overrides .env
+  ```
 
 ### Step 6: Launch the Streamlit UI (Optional but Recommended)
 
@@ -335,9 +528,17 @@ The app will open at `http://localhost:8501` automatically in your browser!
 The Streamlit web interface provides easy configuration through the sidebar:
 
 1. **🤫 Headless Mode**: Check to run browser without GUI window
-2. **🐛 Enable Debug Logs**: Check to see detailed execution logs
+2. **🐛 Enable Debug Logs**: Check to see detailed execution logs (overrides `.env` DEBUG value)
 3. **Scenario Input**: Enter your test scenario in the main text area
 4. **API Status**: Sidebar shows if OpenAI API is configured
+
+**How DEBUG Flag Works:**
+- **In Streamlit UI**: Debug checkbox overrides the `DEBUG` value from `.env`
+  - This gives you full control when running via UI
+  - Each run can have different debug settings
+- **In backend code**: When `debug=None` (not explicitly set), uses `DEBUG` from `.env`
+  - Keep `DEBUG=False` in `.env` for production runs
+  - Change to `DEBUG=True` for local debugging
 
 **Custom Scenario Format:**
 ```
@@ -349,18 +550,22 @@ step 1, step 2, step 3, etc.
 
 ### Terminal Mode Configuration (test_executor.py)
 
-For command-line execution, edit the scenario directly in `backend/test_executor.py`:
+For command-line execution, the system reads `DEBUG` from `.env`:
 
 ```python
 # File: backend/test_executor.py
 
-SCENARIO = """
-Go to https://practice.qabrains.com/ecommerce/login
-Validate add to cart flow for any product
-Here is high level steps to achieve this:
-open page, login with test@qabrains.com & Password123,
-Add 1st product to cart, check the cart and validate product is added successfully
-"""
+# Reads DEBUG from .env
+result = run(
+    scenario="Go to https://...",
+    debug=None  # None means use DEBUG from .env
+)
+
+# Or explicitly override .env
+result = run(
+    scenario="Go to https://...",
+    debug=True  # Explicitly enable debug
+)
 ```
 
 ### Customize LLM Prompts
@@ -374,117 +579,424 @@ Both prompts are highly configurable for different scenarios and requirements.
 
 ---
 
-## ▶️ Running the Project
+## ▶️ Running the Project After Setup
 
-### Option 1: Run with Streamlit UI (Recommended) 🎨
+Once you've completed the setup steps, you're ready to run automation! Choose the option that best fits your needs:
 
+### 🎨 Option 1: Streamlit UI (RECOMMENDED) - Clean & Simple
+
+The easiest and most visual way to run automation with a beautiful, focused web interface.
+
+**How to Run:**
 ```bash
-streamlit run ui/streamlit_app.py
+# Recommended - Clean, simplified UI
+.venv\Scripts\streamlit run ui/streamlit_app_run.py
+
+# Or use direct streamlit command (requires activation)
+streamlit run ui/streamlit_app_run.py
 ```
 
-**Features:**
-- 🎨 Beautiful, colorful web interface
-- 📝 Enter custom scenarios
-- 🚀 One-click execution
-- 🔧 Configure headless mode & debug options
-- 📊 View execution results & metrics
-- 🎯 Pre-loaded example scenario
+**Expected Output:**
+```
+You can now view your Streamlit app in your browser.
 
-**Access at:** http://localhost:8501
+Local URL: http://localhost:8501
+Network URL: http://192.168.x.x:8501
+```
+
+**What You'll See:**
+1. 🎭 Title: "Playwright + LLM Automation"
+2. ✨ Subtitle: "AI-Powered Web Automation with Self-Healing Tests"
+3. ⚙️ Sidebar with Configuration (Headless, Debug)
+4. 📝 Test Scenario text area with example
+5. 🚀 Run Automation button
+
+**After Execution - 3 Result Tabs:**
+
+| Tab | Shows |
+|-----|-------|
+| 📝 **Manual Steps** | Execution history - all steps followed in order |
+| 💻 **Generated Code** | All Playwright code blocks with expandable details |
+| 📊 **Final Result** | Summary report, metrics, and final output |
+
+**Features:**
+- ✅ Ultra-clean interface focused on execution
+- ✅ Metrics display: Steps, Duration, Status
+- ✅ Status badges: ✅ Success or ❌ Failed
+- ✅ Auto-fix indicators (🔧) on code blocks
+- ✅ Error details for debugging
+- ✅ Clear Report button to reset
 
 ---
 
-### Option 2: Run from Terminal (Direct)
+### 🐍 Option 2: Python Script - Integration & Automation
 
+Run automation from your own Python code or automated workflows.
+
+**How to Run:**
+
+Edit `main.py` with your scenario:
+
+```python
+from backend.test_executor import run
+
+# Define your test scenario
+scenario = """
+Go to https://example.com/login
+Complete login flow
+Steps: fill email, password, click login, validate success
+"""
+
+# Execute automation
+result = run(
+    scenario=scenario,
+    headless=False,  # False = show browser, True = hidden
+    debug=True       # True = verbose logs, False = minimal
+)
+
+# Process results
+print(f"✅ Status: {result['status']}")
+print(f"📍 Steps: {result['total_steps']}")
+print(f"⏱️  Duration: {result['duration']}")
+
+# Show execution history
+for i, step in enumerate(result['history'], 1):
+    print(f"  {i}. {step}")
+
+# Show generated code
+for block in result['generated_code']:
+    status = "🔧 Fixed" if block.get('is_fixed') else "✅ OK"
+    print(f"  Step {block['step_number']}: {block['description']} [{status}]")
+```
+
+Then run:
+```bash
+python main.py
+```
+
+**Use Cases:**
+- 🔄 CI/CD pipelines - integrate into continuous testing
+- ⏲️ Scheduled tasks - run on a timer
+- 🔗 Complex workflows - chain multiple scenarios
+- 📦 Batch testing - run multiple tests programmatically
+
+---
+
+### 💻 Option 3: Terminal/CLI - Quick Testing
+
+Direct execution from command line (requires scenario in code).
+
+**How to Run:**
 ```bash
 python backend/test_executor.py
 ```
 
-**What happens:**
-1. Browser opens (headless=False, so you can see it)
-2. System navigates to URL in scenario
-3. Each step is printed to console
-4. Generated code is logged for debugging
-5. If a step fails, it auto-fixes and retries
-6. Press Enter in terminal to close browser after completion
+**What Happens:**
+1. 🌐 Browser launches
+2. 🔍 Navigates to URL in scenario
+3. 🤖 LLM generates code for each step
+4. ⚙️ Executes generated Playwright code
+5. 🔧 Auto-fixes failures if any occur
+6. ✅ Displays final status
+
+**Best for:**
+- 🔨 Quick debugging
+- 🧪 Testing without UI overhead
+- 🚀 CI/CD environments
+- 👀 Real-time execution flow observation
 
 ---
 
-### Debug Mode
+### 🐛 Debug Logging
 
-To see detailed logs:
+**How to Enable Debug Logs:**
 
+In Streamlit (Recommended):
+- ✅ Check "🐛 Enable Debug Logs" checkbox in sidebar
+- Shows detailed DOM, prompts, generated code, errors
+
+In Python:
 ```python
-# Modify backend/utils/logger.py to enable debug output
+# Enable debug
+result = run(scenario="...", debug=True)
+
+# Disable debug
+result = run(scenario="...", debug=False)
+
+# Use .env value
+result = run(scenario="...", debug=None)  # Uses DEBUG from .env
 ```
 
-Or enable in Streamlit UI:
-- Check "🐛 Enable Debug Logs" checkbox in sidebar
+In .env:
+```env
+DEBUG=True     # Development: verbose logs
+DEBUG=False    # Production: clean output
+```
+
+**Debug Output Includes:**
+- 🔍 DOM elements extracted from page
+- 💭 LLM prompts and responses
+- 💻 Generated code before execution
+- ⚠️ Detailed error messages
+- 🔧 Auto-fix attempts and corrections
+
+---
+
+### 🪟 Windows-Specific Notes
+
+**Asyncio Event Loop:**
+- The project includes a fix for Windows asyncio+Streamlit compatibility
+- Automatically uses `WindowsSelectorEventLoopPolicy` on Windows
+- No manual configuration needed
+
+**Playwright Browsers:**
+```bash
+# Make sure Playwright browsers are installed
+playwright install
+
+# If issues, reinstall with --with-deps
+playwright install --with-deps
+```
 
 ---
 
 ## 🎨 Streamlit UI Guide
 
-### Quick Start with Streamlit
+### Starting the Streamlit App
+
+Once you've completed setup, launching the Streamlit UI is simple:
 
 ```bash
-# Navigate to project directory
-cd d:\Codebase\Playwright_With_LLM
-
-# Activate virtual environment
+# From project root, activate environment (if not already active)
 .venv\Scripts\activate
 
-# Run Streamlit app
+# Run the Streamlit app
 streamlit run ui/streamlit_app.py
 ```
 
-App opens automatically at: **http://localhost:8501**
-
-### UI Layout & Features
-
+**What You'll See:**
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  🎭 Playwright + LLM Automation                            │
-│  ✨ AI-Powered Web Automation with Self-Healing Tests     │
-├──────────────────────┬──────────────────────────────────────┤
-│ LEFT SIDEBAR         │ MAIN CONTENT                         │
-├──────────────────────┼──────────────────────────────────────┤
-│ ⚙️ Configuration     │ 📝 Test Scenario                    │
-│ ├─ Headless Mode    │ ├─ Text area for scenario            │
-│ ├─ Debug Logs       │ └─ Example scenarios on right        │
-│                     │                                      │
-│ 📚 Quick Start      │ 🎯 Action Buttons                   │
-│ 📊 Session Info     │ ├─ 🚀 Run Automation               │
-│ 🔗 Resources        │ ├─ 🔄 Clear Results                │
-│                     │ └─ ℹ️ Show Info                    │
-│                     │                                      │
-│                     │ 📈 Results Display                  │
-│                     │ ├─ Status (✅ Success/❌ Failed)    │
-│                     │ ├─ Metrics (Steps, Errors, Time)   │
-│                     │ └─ Output & Logs                    │
-└──────────────────────┴──────────────────────────────────────┘
+You can now view your Streamlit app in your browser.
+
+Local URL: http://localhost:8501
+Network URL: http://192.168.1.100:8501
+External URL: http://your-ip:8501
+
+Rerun script through browser
 ```
 
-### Color Scheme
+The browser should open automatically. If not, manually navigate to **http://localhost:8501**
 
-- 🟣 **Primary (Purple→Violet)**: `#667eea → #764ba2`
-- 🟢 **Success (Green)**: `#11998e → #38ef7d`
-- 🔴 **Error (Red)**: `#eb3349 → #f45c43`
-- 🟠 **Warning (Orange-Pink)**: `#f093fb → #f5576c`
-- 🔵 **Info (Blue)**: `#1e3c72 → #2a5298`
+---
 
-### Key UI Components
+### UI Walkthrough: Step by Step
 
-| Component | Purpose |
-|-----------|---------|
-| **Scenario Input** | Main text area to describe test |
-| **Headless Toggle** | Run browser hidden (faster) |
-| **Debug Toggle** | See detailed execution logs |
-| **Run Button** | Execute automation |
-| **Clear Button** | Reset results |
-| **Info Button** | Show workflow explanation |
-| **Status Badge** | ✅ Success or ❌ Failed |
-| **Metrics Cards** | Steps executed, errors fixed, duration |
+**Step 1: Configure Your Execution**
+```
+Left Sidebar:
+┌─ ⚙️ Configuration
+│  ├─ 🤫 Headless Mode  [Toggle checkbox]
+│  │  └─ Unchecked = See browser window (slower)
+│  │     Checked = Run hidden (faster)
+│  │
+│  └─ 🐛 Enable Debug Logs  [Toggle checkbox]
+│     └─ Unchecked = Clean output (production)
+│        Checked = Verbose logs (debugging)
+```
+
+**Step 2: Enter Your Scenario**
+```
+Main Content Area:
+📝 Test Scenario (large text area)
+├─ Default: Pre-filled with example scenario
+├─ Edit: Replace with your own test steps
+└─ Format: Go to [URL], then describe what you want to do
+```
+
+**Step 3: Run Automation**
+```
+Action Buttons:
+✭ 🚀 Run Automation      ← Click to execute
+✭ 🔄 Clear Results       ← Remove previous results
+✭ ℹ️ Show Info           ← Display workflow info
+```
+
+**Step 4: View Results in 4 Tabs**
+
+After execution completes, results appear in tabs:
+
+**Tab 1: 📋 Overview**
+```
+Status: ✅ PASSED
+━━━━━━━━━━━━━━━━━━━
+⏱️  Duration: 42.5 seconds
+🔄 Steps Completed: 5
+🎯 Final Step: Validated success message
+```
+
+**Tab 2: 📝 Steps Followed**
+```
+1. ✅ Navigated to login page - SUCCESS
+2. ✅ Filled email field - SUCCESS
+3. ✅ Filled password field - SUCCESS
+4. ✅ Clicked login button - SUCCESS
+5. ✅ Validated success message - SUCCESS
+```
+
+**Tab 3: 💻 Generated Code E2E**
+```
+🔹 Step 1: Navigate to login page
+   └─ Code: page.goto("https://example.com/login")
+   └─ Status: ✅ Executed Successfully
+
+🔹 Step 2: Fill email field
+   └─ Code: page.fill("#email_input", "test@example.com")
+   └─ Status: 🔧 Fixed (Auto-corrected)
+   └─ Error was: selector not found
+
+... (more code blocks)
+```
+
+**Tab 4: 📊 Test Status**
+```
+Overall Result: ✅ TEST PASSED
+━━━━━━━━━━━━━━━━━━━━━━
+├─ Status: SUCCESS
+├─ Total Steps: 5
+├─ Duration: 42.5s
+├─ Auto-Fixes: 1
+└─ Errors: 0
+
+Final Step Description:
+Validated that success message appears after login
+```
+
+---
+
+### UI Layout Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     🎭 Playwright + LLM                         │
+│            AI-Powered Web Automation                            │
+├──────────────────────┬──────────────────────────────────────────┤
+│ 📌 LEFT SIDEBAR      │ 📄 MAIN CONTENT AREA                    │
+├──────────────────────┼──────────────────────────────────────────┤
+│                      │                                          │
+│ ⚙️ Configuration     │ 📝 Test Scenario Input                  │
+│  ☐ Headless Mode    │ ┌──────────────────────────────────────┐│
+│  ☐ Debug Logs       │ │ Go to https://example.com/login      ││
+│                      │ │ Complete login flow                  ││
+│ 📊 Session Info      │ │ Steps: fill email, password, submit  ││
+│  Last Run: 5 steps   │ │                                      ││
+│  Avg Time: 40s       │ └──────────────────────────────────────┘│
+│                      │                                          │
+│ 🔗 Resources         │ 🎯 Action Buttons                       │
+│  • Docs              │  [🚀 Run] [🔄 Clear] [ℹ️ Info]         │
+│  • Examples          │                                          │
+│                      │ 📈 Results (After Execution)            │
+│                      │  📋 │ 📝 │ 💻 │ 📊                      │
+│                      │  Overview Steps Code Status              │
+└──────────────────────┴──────────────────────────────────────────┘
+```
+
+---
+
+### Color Scheme & Visual Design
+
+**Gradient Theme:**
+- 🟣 **Main**: Purple (#667eea) → Violet (#764ba2)
+- 🟢 **Success**: Green (#11998e) → Lime (#38ef7d)
+- 🔴 **Errors**: Red (#eb3349) → Orange (#f45c43)
+- 🟠 **Warnings**: Pink (#f093fb) → Red (#f5576c)
+- 🔵 **Info**: Navy (#1e3c72) → Blue (#2a5298)
+
+**Design Features:**
+- ✨ Smooth hover effects on buttons
+- 🎨 Expandable/collapsible code blocks
+- 📊 Color-coded status badges
+- 📱 Responsive layout (desktop & tablet friendly)
+
+---
+
+### Common Use Cases
+
+**Use Case 1: Testing E-Commerce Flow**
+```
+Scenario:
+Go to https://practice.qabrains.com/ecommerce
+Validate complete purchase flow
+Steps: login, find product, add to cart, checkout
+
+Configuration:
+  ☑ Headless Mode        (for speed)
+  ☐ Debug Logs           (not needed)
+
+Expected Result:
+  ✅ 8-10 steps, ~60 seconds
+  ✅ All auto-fill and clicks working
+  ✅ Success message on order confirmation
+```
+
+**Use Case 2: Debugging Login Issues**
+```
+Scenario:
+Go to https://example.com/login
+Debug why login fails
+
+Configuration:
+  ☐ Headless Mode        (see browser)
+  ☑ Debug Logs           (verbose output)
+
+Expected Result:
+  🔧 1-2 auto-fixes applied
+  ✅ Detailed logs showing each step
+  ✅ Error details visible
+```
+
+**Use Case 3: Batch Testing**
+```
+Scenario:
+[Run multiple times with different scenarios]
+Go to https://api.example.com/test1
+Go to https://api.example.com/test2
+...
+
+Configuration:
+  ☑ Headless Mode        (faster batch)
+  ☐ Debug Logs           (minimal output)
+
+Expected Result:
+  ✅ All scenarios pass
+  📊 Metrics show consistency
+  ⏱️ Total time tracked
+```
+
+---
+
+### Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+R` | Refresh page |
+| `Ctrl+L` | Clear input |
+| `Tab` | Navigate fields |
+| `Enter` | Submit scenario (if focused) |
+
+---
+
+### Troubleshooting in Streamlit UI
+
+| Problem | Solution |
+|---------|----------|
+| "Port 8501 already in use" | Change port: `streamlit run ... --server.port 8502` |
+| "App not opening in browser" | Manually open http://localhost:8501 |
+| "Results not showing" | Check browser console for errors (F12) |
+| "Slow execution" | Enable "Headless Mode" checkbox |
+| "No debug output" | Check "Enable Debug Logs" checkbox |
+| "Rerun script notification" | Click to refresh or wait - temporary |
+
+
 
 ---
 
@@ -546,6 +1058,74 @@ page.click("#submit_btn")
 ```
 
 **Reason:** "Used unique IDs instead of text selectors for reliability"
+
+---
+
+### Example 3: Using Modified run() Function
+
+The `run()` function now accepts parameters and returns structured results with full execution history:
+
+```python
+from backend.test_executor import run
+
+# Execute with custom scenario
+result = run(
+    scenario="""
+    Go to https://practice.qabrains.com/ecommerce/login
+    Validate add to cart flow
+    Steps: login, find product, add to cart, verify
+    """,
+    headless=False,  # Show browser window
+    debug=True       # Enable debug logs
+)
+
+# Access results
+print(f"Status: {result['status']}")           # SUCCESS or FAIL
+print(f"Total Steps: {result['total_steps']}")
+print(f"Duration: {result['duration']}")
+
+# View all steps followed
+print("\n📝 Execution History:")
+for i, step in enumerate(result['history'], 1):
+    print(f"  {i}. {step}")
+
+# View all generated code blocks
+print("\n💻 Generated Code Blocks:")
+for code_item in result['generated_code']:
+    print(f"\n  Step {code_item['step_number']}: {code_item['description']}")
+    print(f"  Code: {code_item['code'][:50]}...")
+    if code_item.get('is_fixed'):
+        print(f"  ✅ Auto-fixed by Code Mender")
+```
+
+**Returned Result Structure:**
+```python
+{
+    "status": "SUCCESS",              # SUCCESS | FAIL
+    "description": "Validated checkout", # Final step
+    "history": [                      # All steps executed
+        "Navigated to login page",
+        "Filled email field",
+        "Filled password field", 
+        "Clicked login",
+        "Added product to cart",
+        "Validated cart updated"
+    ],
+    "generated_code": [               # All code blocks with details
+        {
+            "step_number": 1,
+            "description": "Navigate to login",
+            "code": "page.goto('https://...')",
+            "status": "COMPLETE",
+            "is_fixed": False,        # Was auto-corrected?
+            "error": None
+        },
+        ...
+    ],
+    "duration": "45.2s",              # Total time
+    "total_steps": 6
+}
+```
 
 ---
 
